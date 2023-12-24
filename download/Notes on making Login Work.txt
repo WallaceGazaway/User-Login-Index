@@ -1,0 +1,138 @@
+For Login, perhaps make two variants of the landing page, one with only the login and new user option and ability to view tables, and one with an option to both view and update/delete
+them? This other, more complex one will be reached only by inputting any of the logins already in the system.
+
+Yes. Landing will only have a login and new user option. Only after a successful login checking to be sure the given password and login name are right will you be allowed 
+into the selection, update, and deletion options.
+For update and deletion, also make it so only the user you currently are can be tampered with (similar to only being able to tamper with specific ID numbers, switching
+the number for $Login == $uLogin or if that fails have it where only the new user created can be messed with
+
+WHERE Login = 
+
+Rather, create a session variable? Recognizing that they're logged in, they will only edit a login relating to that session?
+
+Could make a work around by giving any new logins created a value = new. When updating and deleting have it look for ones with the value of 'new'
+Do the same with address and billing.
+
+Note that the instructions are also talking about session variables. Same mindset, though instead of the logins having value = 'new' have something like 
+$_SESSION["User"] = "logged";
+
+This means that when finding, updating, and deleting users and information I will likely need, early on, a WHERE $_SESSION["User"] = "logged" similar to bookID=32
+Alternatively, in the event this does not work (such as this session variable not being considered part of the table and putting it at top isnt enough) I have
+places a value="new" inside the Login portion of insertUser. I could try a WHERE Login value = "new" or look into how to seek specific values with databases.
+
+Could also cheat and put WHERE Login != "rjg" as that's the only one in the table currently, but that has issues if there's more than one added new user.
+
+$POST is to get data not within the url but within the database. It might be worth trying to see if just putting POSTs for both Login and Passwd is enoguh to bar entry 
+by checking if what I typed is in the database
+
+
+Will probably need to split my login into two pieces again (Login and doLogin)
+
+
+Could also try a openDbConn and then directly after having an if(($Login != $uLogin) && ($Passwd != $uPass)) then you get denied.
+
+Could also make a $user = checkLog($db); that works in conjunction with a include("doLogin.php") and likely the constant inclusion of openDbConn.php at the beginning of every page needing proof of login.
+
+It's also possible that my current openDbConn lacks certain elements needed for this. To remedy this I might could either create a second conn.php for this info, or could add onto what I have.
+
+
+For the insertion of a shipping or a billing, for the login I might need to make a system to autofill it based on the current session's user (so try something like in 
+the drive I found where they made a 'username' get posted. Also look at the update pages to see about making disabled and autofilled inputs. Maybe have $Login = $Session["Login"]?)
+
+
+Could construct a cheat in which I have the login in insert shipping and billing grabbed with a select in which the Login!="rjg" but again such a cheat would likely lose points
+
+
+If login system continues to fail and I don't want to try making a false jury rig system for it, try repurposing the checking system to confirm if a name is taken.
+
+So first openDbConn.php inclusion, then after create a $sql = "SELECT Login, Passwd FROM P2User WHERE Login=" .$Login;
+
+$result = mysqli_query($db, $sql);
+
+if(empty($result))
+	$num_results = 0;
+else
+	$num_results = mysqli_num_rows($result);
+
+if($num_results != 0)
+{
+	$_SESSION["Login"] = $uLogin;
+  	$_SESSION["success"] = "You are now logged in";
+  	header("Location: loginSuccess.php");
+}
+else
+{
+	$_SESSION["errorMessage"] = "User not found!";
+	header("Location: login.php");
+	exit;
+}
+
+then close dbConn (it actually might be better to place this inside the if num results is more than 0 statement)
+
+
+Make return to landing page also convert $SESSION["Login"] = "";
+
+
+Having trouble adding new users. If issue persists, I could combine the two landing pages to see if perhaps the disconnect from the menu with the tables is the issue 
+but I highly doubt that has any bearing on it.
+
+
+Shipping and Billing dont need the only one of each name restriction, what's important is the Login. Remove the aspect that seeks if the IDs have been used already, because duplicates are allowed.
+
+Doubtful, but could see if the white names having spaces are the problem?
+
+
+Might either move the select user table back to something reach from main page or make it show up on main page, but would like to avoid that.
+
+---If I do this, of course a way I can have the login shown to work is either hope the teacher recognizes I am by seeing they can only edit their logged in info, or 
+try using something like 'Welcome $SESSION['Login']' to print out a welcome to the logged in user at the landing page.
+
+
+To bypass the errors from the update and delete pages seeking out null data could call what they're looking for at the top but make them empty by default until changed by the lower code
+(might not bother doing)
+
+Also, might try calling the session error message after making a version that states login, but only if cant get login session to work.
+
+
+Might be worth trying to reword the naming convention of Login
+
+
+
+Old Scrapped Login Method in doLogin:
+
+if(isset($_POST['LoginBtn']))
+{ 
+	$Login = mysqli_real_escape_string($db, $_POST['uLogin']);
+	$Passwd = mysqli_real_escape_string($db, $_POST['uPass']);
+
+	//No found errors
+	$_SESSION["errorMessage"] = "";
+	//$_SESSION["User"] = "logged";
+
+	if($_SESSION["errorMessage"]="") 
+	{
+		$query = "SELECT * FROM P2User WHERE Login='$uLogin' AND Passwd='$uPass'";
+  		$result = mysqli_query($db, $query);
+  		if ($result && mysqli_num_rows($result) > 0) 
+		{
+  	  		$_SESSION["Login"] = $uLogin;
+  	  		$_SESSION["success"] = "You are now logged in";
+  	  		header("Location: loginSuccess.php");
+  		}
+		else {
+			$_SESSION["errorMessage"] = "The information submitted does not match our database!";
+			header("Location: login.php");
+			exit;
+  		}
+	}
+}
+
+
+
+
+
+This is what I had at the SELECT for the Login check:
+
+$sql = "SELECT * FROM P2User WHERE Login= .$Login AND Passwd= .$Passwd";
+
+But i dont think this is right.
